@@ -436,11 +436,13 @@ export class MerkleTreePrefix extends Base {
    *const leaves = tree.getHexLeaves()
    *```
    */
-   /* TODO
-  getHexLeaves ():string[] {
-    return this.leaves.map(leaf => this.bufferToHex(leaf))
+  getHexLeaves ():object[] { 
+    return this.leaves.map(l => ({ 
+      leaf: this.bufferToHex(l.leaf), 
+      vote: l.vote 
+    })) 
   }
-  */
+
   /**
    * marshalLeaves
    * @desc Returns array of leaves of Merkle Tree as a JSON string.
