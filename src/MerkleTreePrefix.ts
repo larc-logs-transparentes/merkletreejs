@@ -1270,7 +1270,7 @@ export class MerkleTreePrefix extends Base {
    *```
    */
   getLayersAsObject ():any {
-    const layers: any[] = this.getLayers().map((layer: any) => layer.map((value: any) => this.bufferToHex(value, false)))
+    const layers: any[] = this.getLayers().map((layer: any) => layer.map((value: any) => (Buffer.isBuffer(value.leaf) ? this.bufferToHex(value.leaf) : value.leaf)))
     const objs = []
     for (let i = 0; i < layers.length; i++) {
       const arr = []
