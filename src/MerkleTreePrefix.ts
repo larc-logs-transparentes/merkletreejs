@@ -436,11 +436,13 @@ export class MerkleTreePrefix extends Base {
    *const leaves = tree.getHexLeaves()
    *```
    */
-   /* TODO
-  getHexLeaves ():string[] {
-    return this.leaves.map(leaf => this.bufferToHex(leaf))
+  getHexLeaves ():object[] { 
+    return this.leaves.map(l => ({ 
+      leaf: this.bufferToHex(l.leaf), 
+      vote: l.vote 
+    })) 
   }
-  */
+
   /**
    * marshalLeaves
    * @desc Returns array of leaves of Merkle Tree as a JSON string.
@@ -580,12 +582,14 @@ export class MerkleTreePrefix extends Base {
    *const root = tree.getRoot()
    *```
    */
-  getRoot ():Buffer {
-    if (this.layers.length === 0) {
-      return Buffer.from([])
-    }
-
-    return this.layers[this.layers.length - 1][0] || Buffer.from([])
+  getRoot (): TLeafPref {
+    if (this.layers.length === 0) 
+      return {
+        leaf: Buffer.from([]),
+        vote: [[]]
+      }
+      
+    return this.layers[this.layers.length - 1][0]
   }
 
   /**
@@ -597,10 +601,13 @@ export class MerkleTreePrefix extends Base {
    *const root = tree.getHexRoot()
    *```
    */
-  getHexRoot ():string {
-    return this.bufferToHex(this.getRoot())
+   getHexRoot (): object {
+   return {
+      leaf: this.bufferToHex(this.getRoot().leaf),
+      vote: this.getRoot().vote
+    } 
   }
-
+ 
   /**
    * getProof
    * @desc Returns the proof for a target leaf.
