@@ -18,7 +18,8 @@ type TLeafPref = {
   vote: Array<Array<[string, number]>>;
 };
 type TLayer = any
-type TFillDefaultHash = (idx?: number, hashFn?: THashFn) => THashFnResult
+//type TFillDefaultHash = (idx?: number, hashFn?: THashFn) => THashFnResult
+type TFillDefaultHash = boolean
 
 export interface Options {
   /** If set to `true`, an odd node will be duplicated and combined to make a pair to generate the layer hash. */
@@ -34,7 +35,8 @@ export interface Options {
   /** If set to `true`, the leaves and hashing pairs will be sorted. */
   sort?: boolean
   /** If defined, the resulting hash of this function will be used to fill in odd numbered layers. */
-  fillDefaultHash?: TFillDefaultHash | Buffer | string
+  //fillDefaultHash?: TFillDefaultHash | Buffer | string
+  fillDefaultHash?: boolean
 }
 
 /**
@@ -51,7 +53,7 @@ export class MerkleTreePrefix extends Base {
   private sortLeaves: boolean = false
   private sortPairs: boolean = false
   private sort: boolean = false
-  private fillDefaultHash: TFillDefaultHash | null = null
+  private fillDefaultHash: boolean | null = null
 
   private hashFnPref(leaf : TLeafPref){
     leaf.leaf = this.hashFn(leaf.leaf)
@@ -87,7 +89,9 @@ export class MerkleTreePrefix extends Base {
     this.sortLeaves = !!options.sortLeaves
     this.sortPairs = !!options.sortPairs
 
-    if (options.fillDefaultHash) {
+
+    this.fillDefaultHash = options.fillDefaultHash
+    /*if (options.fillDefaultHash) {
       if (typeof options.fillDefaultHash === 'function') {
         this.fillDefaultHash = options.fillDefaultHash
       } else if (Buffer.isBuffer(options.fillDefaultHash) || typeof options.fillDefaultHash === 'string') {
@@ -95,7 +99,7 @@ export class MerkleTreePrefix extends Base {
       } else {
         throw new Error('method "fillDefaultHash" must be a function, Buffer, or string')
       }
-    }
+    }*/
 
     this.sort = !!options.sort
     if (this.sort) {
@@ -118,15 +122,21 @@ export class MerkleTreePrefix extends Base {
     /*this.leaves = leaves.map(this.bufferify)
     if (this.sortLeaves) {
       this.leaves = this.leaves.sort(Buffer.compare)
-    } 
+    } */
 
     if (this.fillDefaultHash) {
       for (let i = 0; i < Math.pow(2, Math.ceil(Math.log2(this.leaves.length))); i++) {
         if (i >= this.leaves.length) {
-          this.leaves.push(this.bufferify(this.fillDefaultHash(i, this.hashFn)))
+          const emptyl = SHA256F("") 
+          const emptyMap = new Array<Array<[string, number]>>([]);
+          
+          const emptyLeaf : TLeafPref = {leaf: emptyl, vote: emptyMap}
+
+      
+          this.leaves.push(emptyLeaf)
         }
       }
-    } */
+    } 
 
     this.layers = [this.leaves]
     this._createHashes(this.leaves)
@@ -628,19 +638,21 @@ export class MerkleTreePrefix extends Base {
    *const proof = tree.getProof(leaves[2], 2)
    *```
    */
-   /*/ TODO
-  getProof (leaf: Buffer | string, index?: number):any[] {
+   // TODO
+  getProof (leaf: TLeafPref , index?: number):any[] {
     if (typeof leaf === 'undefined') {
       throw new Error('leaf is required')
     }
-    leaf = this.bufferify(leaf)
+    if (this.hashLeaves){
+      leaf.leaf = this.hashFn(leaf.leaf)
+    }
     const proof = []
 
     if (!Number.isInteger(index)) {
       index = -1
 
       for (let i = 0; i < this.leaves.length; i++) {
-        if (Buffer.compare(leaf, this.leaves[i]) === 0) {
+        if (Buffer.compare(leaf.leaf, this.leaves[i].leaf) === 0) {
           index = i
         }
       }
@@ -674,7 +686,7 @@ export class MerkleTreePrefix extends Base {
     return proof
   }
   
-*/
+
   /**
    * getHexProof
    * @desc Returns the proof for a target leaf as hex strings.
@@ -1376,7 +1388,7 @@ export class MerkleTreePrefix extends Base {
   }
 
   /**
-   * toString
+   * toStringpow
    * @desc Returns a visual representation of the merkle tree as a string.
    * @example
    *```js
@@ -1450,7 +1462,7 @@ if (typeof window !== 'undefined') {
 
 export default MerkleTreePrefix
 
-const tree = new MerkleTreePrefix([], SHA256)
+const tree = new MerkleTreePrefix([], SHA256, {fillDefaultHash: true})
 const ll = SHA256F("aya") 
 const myMap = new Array<Array<[string, number]>>([
   ["key1", 1],
@@ -1459,7 +1471,7 @@ const myMap = new Array<Array<[string, number]>>([
 
 const myMap1 = new Array<Array<[string, number]>>([
   ["key1", 1],
-  ["key3", 4]
+  ["key3", 3]
 ]);
 
 
@@ -1476,8 +1488,15 @@ tree.addLeaf(testLeaf)
 tree.addLeaf(testLeaf)
 tree.addLeaf(testLeaf1)
 tree.addLeaf(testLeaf1)
+
+const a = tree.getProof(testLeaf1, 4)
+
+/*
+tree.addLeaf(testLeaf)
 tree.addLeaf(testLeaf1)
 tree.addLeaf(testLeaf1)
+tree.addLeaf(testLeaf1)
+tree.addLeaf(testLeaf1)*/
 
 console.log("a")
 console.log(tree)
@@ -1492,3 +1511,29 @@ for (var layer in tree.layers) {
 
 }
 console.log(tree)
+
+console.log(a)
+console.log(a[0]["data"]["vote"])
+console.log(a[1]["data"]["vote"])
+console.log(a[2]["data"]["vote"])
+console.log(a[3]["data"]["vote"])
+console.log(a[4]["data"]["vote"])
+
+const nodo = {position: 'left', 
+              data: testLeaf}
+
+proof: [ nodo, nodo, nodo]
+/*
+[ [ [ 'key1', 1 ], [ 'key2', 2 ] ] ]
+[ [ [ 'key1', 1 ], [ 'key2', 2 ] ] ]
+[ [ [ 'key1', 1 ], [ 'key2', 2 ] ] ]
+[ [ [ 'key1', 1 ], [ 'key3', 3 ] ] ] //layer 1
+[ [ [ 'key1', 1 ], [ 'key3', 3 ] ] ] //layer 1 
+
+
+
+[ [] ]
+[ [] ]
+[ [ [ 'key1', 3 ], [ 'key2', 4 ], [ 'key3', 3 ] ] ]
+[ [ [ 'key1', 1 ], [ 'key3', 3 ] ] ]
+[ [ [ 'key1', 1 ], [ 'key3', 3 ] ] ]*/
