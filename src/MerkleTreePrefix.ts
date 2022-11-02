@@ -118,7 +118,7 @@ export class MerkleTreePrefix extends Base {
       leaves = leaves.map(this.hashFnPref)
     }
 
-    this.leaves = leaves
+    this.leaves = leaves.map((leaf:TLeafPref) => ({leaf: this.bufferify(leaf.leaf), vote: leaf.vote}))
     /*this.leaves = leaves.map(this.bufferify)
     if (this.sortLeaves) {
       this.leaves = this.leaves.sort(Buffer.compare)
@@ -392,14 +392,17 @@ export class MerkleTreePrefix extends Base {
    *const leaf = tree.getLeaf(1)
    *```
    */
-   /*/TODO getLeaf (index: number):Buffer {
+   getLeaf (index: number):TLeafPref {
     if (index < 0 || index > this.leaves.length - 1) {
-      return Buffer.from([])
+      return  {
+        leaf: Buffer.from([]),
+        vote: null
+      }
     }
 
     return this.leaves[index]
   }
-  */
+  
   /**
    * getLeafIndex
    * @desc Returns the index of the given leaf, or -1 if the leaf is not found.
@@ -1081,8 +1084,8 @@ export class MerkleTreePrefix extends Base {
    * to the Merkle root.
    * @param {Object[]} proof - Array of proof objects that should connect
    * target node to Merkle root.
-   * @param {Buffer} targetNode - Target node Buffer
-   * @param {Buffer} root - Merkle root Buffer
+   * @param {TLeafPref} targetNode - Target node Buffer
+   * @param {TLeafPref} root - Merkle root Buffer
    * @return {Boolean}
    * @example
    *```js
@@ -1091,10 +1094,41 @@ export class MerkleTreePrefix extends Base {
    *const verified = tree.verify(proof, leaves[2], root)
    *```
    */
-  verify (proof: any[], targetNode: Buffer | string, root: Buffer | string):boolean {
-    let hash = this.bufferify(targetNode)
-    root = this.bufferify(root)
+  verify (proof: any[], targetNode: TLeafPref, root: TLeafPref):boolean {
+    const criarHash = (leftNode:TLeafPref, rightNode:TLeafPref):TLeafPref => {
+      let dataleaf = null
+      let combined = [leftNode, rightNode]
+      let datavote = []
 
+      let vote = _.cloneDeep(combined[0].vote)
+      for (let ij = 0; ij < combined[0].vote[0].length ; ij += 1){
+        datavote[SHA256F(combined[0].vote[0][ij][0])] = combined[0].vote[0][ij][1]
+      }
+      for (let ijj = 0; ijj < combined[1].vote[0].length ; ijj +=1){
+        if(datavote[SHA256F(combined[1].vote[0][ijj][0])] == undefined){
+          vote[0].push(combined[1].vote[0][ijj])
+        }
+        else{
+          for (let j = 0; j <vote[0].length; j +=1){
+            if(vote[0][j][0] == combined[1].vote[0][ijj][0]){
+              vote[0][j][1] += combined[1].vote[0][ijj][1]
+              break
+            }
+          }
+        }
+        datavote[SHA256F(combined[1].vote[0][ijj][0])] += combined[1].vote[0][ijj][1] 
+      }
+      dataleaf = Buffer.concat([Buffer.from(Array.from(datavote)),this.bufferify(combined[0].leaf), this.bufferify(combined[1].leaf) ], 3)
+      let hash = this.hashFn(dataleaf)
+      var m =  Object.assign([], vote)
+      const newLeaf:  TLeafPref = {
+        leaf: hash,
+        vote: m
+      } 
+      return newLeaf
+    } 
+    
+    let hash = targetNode
     if (
       !Array.isArray(proof) ||
       !targetNode ||
@@ -1105,53 +1139,19 @@ export class MerkleTreePrefix extends Base {
 
     for (let i = 0; i < proof.length; i++) {
       const node = proof[i]
-      let data: any = null
-      let isLeftNode = null
+      let data:TLeafPref = node.data
+      let isLeftNode = node.position === 'left'
 
-      // case for when proof is hex values only
-      if (typeof node === 'string') {
-        data = this.bufferify(node)
-        isLeftNode = true
-      } else if (Array.isArray(node)) {
-        isLeftNode = (node[0] === 0)
-        data = this.bufferify(node[1])
-      } else if (Buffer.isBuffer(node)) {
-        data = node
-        isLeftNode = true
-      } else if (node instanceof Object) {
-        data = this.bufferify(node.data)
-        isLeftNode = (node.position === 'left')
-      } else {
-        throw new Error('Expected node to be of type string or object')
-      }
+      const buffers: TLeafPref[] = []
 
-      const buffers: any[] = []
-
-      if (this.isBitcoinTree) {
-        buffers.push(reverse(hash))
-
-        buffers[isLeftNode ? 'unshift' : 'push'](reverse(data))
-
-        hash = this.hashFn(Buffer.concat(buffers))
-        hash = reverse(this.hashFn(hash))
-      } else {
-        if (this.sortPairs) {
-          if (Buffer.compare(hash, data) === -1) {
-            buffers.push(hash, data)
-            hash = this.hashFn(Buffer.concat(buffers))
-          } else {
-            buffers.push(data, hash)
-            hash = this.hashFn(Buffer.concat(buffers))
-          }
-        } else {
-          buffers.push(hash)
-          buffers[isLeftNode ? 'unshift' : 'push'](data)
-          hash = this.hashFn(Buffer.concat(buffers))
-        }
-      }
+      buffers.push(hash)
+      buffers[isLeftNode ? 'unshift' : 'push'](data)
+      
+      hash = criarHash(buffers[0], buffers[1])
+      console.log(`${this.bufferToHex((buffers[0].leaf))} + ${this.bufferToHex((buffers[1].leaf))} = ${this.bufferToHex(hash.leaf)}`)
     }
 
-    return Buffer.compare(hash, root) === 0
+    return Buffer.compare(hash.leaf, root.leaf) === 0
   }
 
   /**
@@ -1313,11 +1313,11 @@ export class MerkleTreePrefix extends Base {
    *const verified = MerkleTreePrefix.verify(proof, leaf, root, sha256, options)
    *```
    */
-  static verify (proof: any[], targetNode: Buffer | string, root: Buffer | string, hashFn = SHA256, options: Options = {}):boolean {
+/*   static verify (proof: any[], targetNode: TLeafPref, root: TLeafPref, hashFn = SHA256, options: Options = {}):boolean {
     const tree = new MerkleTreePrefix([], hashFn, options)
     return tree.verify(proof, targetNode, root)
   }
-
+ */
   /**
    * getMultiProof
    * @desc Returns the multiproof for given tree indices.
@@ -1488,52 +1488,6 @@ tree.addLeaf(testLeaf)
 tree.addLeaf(testLeaf)
 tree.addLeaf(testLeaf1)
 tree.addLeaf(testLeaf1)
-
+console.log(tree.toString())
 const a = tree.getProof(testLeaf1, 4)
-
-/*
-tree.addLeaf(testLeaf)
-tree.addLeaf(testLeaf1)
-tree.addLeaf(testLeaf1)
-tree.addLeaf(testLeaf1)
-tree.addLeaf(testLeaf1)*/
-
-console.log("a")
-console.log(tree)
-
-
-for (var layer in tree.layers) {
-  console.log(tree.layers[layer])
-  for(var layerj in tree.layers[layer]){
-    console.log("layer" + layerj)
-    console.log(tree.layers[layer][layerj].vote)
-  }
-
-}
-console.log(tree)
-
-console.log(a)
-console.log(a[0]["data"]["vote"])
-console.log(a[1]["data"]["vote"])
-console.log(a[2]["data"]["vote"])
-console.log(a[3]["data"]["vote"])
-console.log(a[4]["data"]["vote"])
-
-const nodo = {position: 'left', 
-              data: testLeaf}
-
-proof: [ nodo, nodo, nodo]
-/*
-[ [ [ 'key1', 1 ], [ 'key2', 2 ] ] ]
-[ [ [ 'key1', 1 ], [ 'key2', 2 ] ] ]
-[ [ [ 'key1', 1 ], [ 'key2', 2 ] ] ]
-[ [ [ 'key1', 1 ], [ 'key3', 3 ] ] ] //layer 1
-[ [ [ 'key1', 1 ], [ 'key3', 3 ] ] ] //layer 1 
-
-
-
-[ [] ]
-[ [] ]
-[ [ [ 'key1', 3 ], [ 'key2', 4 ], [ 'key3', 3 ] ] ]
-[ [ [ 'key1', 1 ], [ 'key3', 3 ] ] ]
-[ [ [ 'key1', 1 ], [ 'key3', 3 ] ] ]*/
+console.log(tree.verify(a, tree.getLeaf(4), tree.getRoot()))
