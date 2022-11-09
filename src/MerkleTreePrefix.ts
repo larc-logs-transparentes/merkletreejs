@@ -644,7 +644,7 @@ export class MerkleTreePrefix extends Base {
    // TODO
   getProof (leaf: TLeafPref , index?: number):any[] {
     if (typeof leaf === 'undefined') {
-      throw new Error('leaf is required')
+      throw new Error(' leaf is required')
     }
     if (this.hashLeaves){
       leaf.leaf = this.hashFn(leaf.leaf)
@@ -653,6 +653,8 @@ export class MerkleTreePrefix extends Base {
 
     if (!Number.isInteger(index)) {
       index = -1
+      
+      if(!Buffer.isBuffer(leaf.leaf)) leaf.leaf = this.bufferify(leaf.leaf)
 
       for (let i = 0; i < this.leaves.length; i++) {
         if (Buffer.compare(leaf.leaf, this.leaves[i].leaf) === 0) {
