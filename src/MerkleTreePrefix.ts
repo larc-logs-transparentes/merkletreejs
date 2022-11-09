@@ -130,7 +130,7 @@ export class MerkleTreePrefix extends Base {
           const emptyl = SHA256F("") 
           const emptyMap = new Array<Array<[string, number]>>([]);
           
-          const emptyLeaf : TLeafPref = {leaf: emptyl, vote: emptyMap}
+          const emptyLeaf : TLeafPref = {leaf: this.bufferify(emptyl), vote: emptyMap}
 
       
           this.leaves.push(emptyLeaf)
@@ -452,7 +452,7 @@ export class MerkleTreePrefix extends Base {
   getHexLeaves ():object[] { 
     return this.leaves.map(l => ({ 
       leaf: this.bufferToHex(l.leaf), 
-      vote: l.vote 
+      vote: JSON.stringify(l.vote) 
     })) 
   }
 
