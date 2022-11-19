@@ -130,7 +130,7 @@ export class MerkleTreePrefix extends Base {
           const emptyl = SHA256F("") 
           const emptyMap = new Array<Array<[string, number]>>([]);
           
-          const emptyLeaf : TLeafPref = {leaf: emptyl, vote: emptyMap}
+          const emptyLeaf : TLeafPref = {leaf: this.bufferify(emptyl), vote: emptyMap}
 
       
           this.leaves.push(emptyLeaf)
@@ -452,7 +452,7 @@ export class MerkleTreePrefix extends Base {
   getHexLeaves ():object[] { 
     return this.leaves.map(l => ({ 
       leaf: this.bufferToHex(l.leaf), 
-      vote: l.vote 
+      vote: JSON.stringify(l.vote) 
     })) 
   }
 
@@ -644,7 +644,7 @@ export class MerkleTreePrefix extends Base {
    // TODO
   getProof (leaf: TLeafPref , index?: number):any[] {
     if (typeof leaf === 'undefined') {
-      throw new Error('leaf is required')
+      throw new Error(' leaf is required')
     }
     if (this.hashLeaves){
       leaf.leaf = this.hashFn(leaf.leaf)
@@ -653,6 +653,8 @@ export class MerkleTreePrefix extends Base {
 
     if (!Number.isInteger(index)) {
       index = -1
+      
+      if(!Buffer.isBuffer(leaf.leaf)) leaf.leaf = this.bufferify(leaf.leaf)
 
       for (let i = 0; i < this.leaves.length; i++) {
         if (Buffer.compare(leaf.leaf, this.leaves[i].leaf) === 0) {
