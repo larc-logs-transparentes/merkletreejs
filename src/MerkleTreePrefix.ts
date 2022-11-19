@@ -146,14 +146,14 @@ export class MerkleTreePrefix extends Base {
 
    
 
-    console.log(this.layers)
+    //console.log(this.layers)
     while (nodes.length > 1) {
       const layerIndex = this.layers.length
 
       this.layers.push([])
       //console.log(this.layers)
   
-      console.log(" for (let i = 0; i < nodes.length; i += 2) {")
+      //console.log(" for (let i = 0; i < nodes.length; i += 2) {")
       for (let i = 0; i < nodes.length; i += 2) {
         //console.log("i=" + i)
         //console.log(this.layers)
@@ -1481,7 +1481,6 @@ const testLeaf : TLeafPref = {leaf: ll ,
 const testLeaf1 : TLeafPref = {leaf: ll , 
                           vote: myMap1}
 
-console.log(testLeaf)                 
 tree.addLeaf(testLeaf)
 tree.addLeaf(testLeaf1)
 tree.addLeaf(testLeaf)
@@ -1490,4 +1489,5 @@ tree.addLeaf(testLeaf1)
 tree.addLeaf(testLeaf1)
 console.log(tree.toString())
 const a = tree.getProof(testLeaf1, 4)
+console.log(a)
 console.log(tree.verify(a, tree.getLeaf(4), tree.getRoot()))
