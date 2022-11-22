@@ -119,23 +119,14 @@ export class MerkleTreePrefix extends Base {
     }
 
     this.leaves = leaves.map((leaf:TLeafPref) => ({leaf: this.bufferify(leaf.leaf), vote: leaf.vote}))
-    /*this.leaves = leaves.map(this.bufferify)
-    if (this.sortLeaves) {
-      this.leaves = this.leaves.sort(Buffer.compare)
-    } */
-
     if (this.fillDefaultHash) {
-      for (let i = 0; i < Math.pow(2, Math.ceil(Math.log2(this.leaves.length))); i++) {
+      for (let i = 0; i < Math.pow(2, Math.ceil(Math.log2(this.leaves.length))); i++) 
         if (i >= this.leaves.length) {
           const emptyl = SHA256F("") 
           const emptyMap = new Array<Array<[string, number]>>([]);
-          
           const emptyLeaf : TLeafPref = {leaf: this.bufferify(emptyl), vote: emptyMap}
-
-      
           this.leaves.push(emptyLeaf)
         }
-      }
     } 
 
     this.layers = [this.leaves]
@@ -143,9 +134,6 @@ export class MerkleTreePrefix extends Base {
   }
 
   private _createHashes (nodes: TLeafPref[]) {
-
-   
-
     console.log(this.layers)
     while (nodes.length > 1) {
       const layerIndex = this.layers.length
@@ -1465,31 +1453,200 @@ if (typeof window !== 'undefined') {
 export default MerkleTreePrefix
 
 const tree = new MerkleTreePrefix([], SHA256, {fillDefaultHash: true})
-const ll = SHA256F("aya") 
-const myMap = new Array<Array<[string, number]>>([
-  ["key1", 1],
-  ["key2", 2],
-]);
 
-const myMap1 = new Array<Array<[string, number]>>([
-  ["key1", 1],
-  ["key3", 3]
-]);
+const BUs = [
+{
+  id: "1",
+  _id: "1",
+  secao: "001", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 41, _id: "4"},
+      {partido: "YY", nome: "Candidado B", votos: 109, _id: "3"}]
+},
+{
+  id: "2",
+  _id: "2",
+  secao: "002", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 32, _id: "6"},
+      {partido: "YY", nome: "Candidado B", votos: 19, _id: "5"}]
+},
+{
+  id: "3",
+  _id: "3",
+  secao: "003", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 96, _id: "8"},
+      {partido: "YY", nome: "Candidado B", votos: 15, _id: "7"}]
+},
+{
+  id: "4",
+  _id: "4",
+  secao: "004", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 293, _id: "10"},
+      {partido: "YY", nome: "Candidado B", votos: 93, _id: "9"}]
+},
+{
+  id: "5",
+  _id: "5",
+  secao: "005", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 53, _id: "12"},
+      {partido: "YY", nome: "Candidado B", votos: 72, _id: "11"}]
+},
+{
+  id: "6",
+  _id: "6",
+  secao: "006", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 21, _id: "14"},
+      {partido: "YY", nome: "Candidado B", votos: 5, _id: "13"}]
+  },
+  {
+    id: "7",
+    _id: "7",
+    secao: "007", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 1, _id: "16"},
+        {partido: "YY", nome: "Candidado B", votos: 5, _id: "15"}]
+  },
+  {
+    id: "8",
+    _id: "8",
+    secao: "008", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 54, _id: "18"},
+        {partido: "YY", nome: "Candidado B", votos: 12, _id: "17"}]
+  },
+  {
+    id: "9",
+    _id: "9",
+    secao: "009", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 41, _id: "20"},
+        {partido: "YY", nome: "Candidado B", votos: 109, _id: "19"}]
+  },
+  {
+    id: "10",
+    _id: "10",
+    secao: "010", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 198, _id: "2"},
+        {partido: "YY", nome: "Candidado B", votos: 36, _id: "1"}]
+  },
+  {
+    id: "11",
+    _id: "11",
+    secao: "011", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 41, _id: "22"},
+        {partido: "YY", nome: "Candidado B", votos: 109, _id: "21"}]
+  },
+  {
+    id: "12",
+    _id: "12",
+    secao: "012", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 54, _id: "24"},
+        {partido: "YY", nome: "Candidado B", votos: 12, _id: "23"}]
+  },
+]
+
+const leaves = []
+for (let index = 0; index < BUs.length; index++) {
+  const infoBU = BUs[index];
+  leaves.push({
+      leaf: SHA256(JSON.stringify(infoBU)).toString(),
+      vote: new Array(infoBU.votos.map(candidato => ([candidato.nome, candidato.votos])))
+  })
+}
+
+tree.addLeaves(leaves)
 
 
-const testLeaf : TLeafPref = {leaf: ll , 
-                        vote: myMap}
+const leaf = tree.getLeaf(6)
+const BU = BUs[6]
+const BUHash = Buffer.from(SHA256(JSON.stringify(BU)).toString(), 'hex')
+/* --------------------------------------------------------- */
+console.log("Caso de prova bem-sucedida")
+console.log(leaf.leaf)
+console.log(BUHash)
+if(Buffer.compare(leaf.leaf, BUHash) == 0)
+  console.log("Hashes iguais")
 
-const testLeaf1 : TLeafPref = {leaf: ll , 
-                          vote: myMap1}
+let proof = tree.getProof(leaf, 6)
+let root = tree.getRoot()
+console.log(tree.verify(proof, leaf, root))
+/* --------------------------------------------------------- */
+console.log("Caso de prova alterada") /* Verificar */
+console.log(leaf.leaf)
+console.log(BUHash)
+if(Buffer.compare(leaf.leaf, BUHash) == 0)
+  console.log("Hashes iguais")
+proof = tree.getProof(leaf, 6)
+root = tree.getRoot()
 
-console.log(testLeaf)                 
-tree.addLeaf(testLeaf)
-tree.addLeaf(testLeaf1)
-tree.addLeaf(testLeaf)
-tree.addLeaf(testLeaf)
-tree.addLeaf(testLeaf1)
-tree.addLeaf(testLeaf1)
-console.log(tree.toString())
-const a = tree.getProof(testLeaf1, 4)
-console.log(tree.verify(a, tree.getLeaf(4), tree.getRoot()))
+/* Alterando prova */
+proof[0].data.vote[0][0][1] += 50
+console.log(tree.verify(proof, leaf, root))
+/* --------------------------------------------------------- */
+console.log("Caso de BU alterado")
+
+const BUAlterado = BUs[6]
+BUAlterado.votos[0].votos += 50
+const BUAlteradoHash = Buffer.from(SHA256(JSON.stringify(BUAlterado)).toString(), 'hex')
+
+if(Buffer.compare(leaf.leaf, BUAlteradoHash) == 0)
+  console.log("Hashes iguais")
+else
+  console.log("Hashes diferentes")
+/* --------------------------------------------------------- */
