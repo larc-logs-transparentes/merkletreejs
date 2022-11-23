@@ -1636,9 +1636,12 @@ proof = tree.getProof(leaf, 6)
 root = tree.getRoot()
 
 /* Alterando prova */
+console.log(proof[0].data.vote[0][0][1])
 proof[0].data.vote[0][0][1] += 50
+
 console.log(tree.verify(proof, leaf, root))
 /* --------------------------------------------------------- */
+/* Alterar hash de algum nó da prova */
 console.log("Caso de BU alterado")
 
 const BUAlterado = BUs[6]
