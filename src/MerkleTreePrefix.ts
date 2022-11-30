@@ -291,7 +291,7 @@ export class MerkleTreePrefix extends Base {
         //datavote = datavote.sort()
         */
       
-        dataleaf = Buffer.concat([Buffer.from(Array.from(datavote)),this.bufferify(combined[0].leaf), this.bufferify(combined[1].leaf) ], 3)
+        dataleaf = Buffer.concat([Buffer.from(vote.toString(), "utf-8"),this.bufferify(combined[0].leaf), this.bufferify(combined[1].leaf) ])
         let hash = this.hashFn(dataleaf)
 
         // double hash if bitcoin tree
@@ -1108,13 +1108,17 @@ export class MerkleTreePrefix extends Base {
         }
         datavote[SHA256F(combined[1].vote[0][ijj][0])] += combined[1].vote[0][ijj][1] 
       }
-      dataleaf = Buffer.concat([Buffer.from(Array.from(datavote)),this.bufferify(combined[0].leaf), this.bufferify(combined[1].leaf) ], 3)
+      dataleaf = Buffer.concat([Buffer.from(vote.toString(), "utf-8"),this.bufferify(combined[0].leaf), this.bufferify(combined[1].leaf) ])
       let hash = this.hashFn(dataleaf)
       var m =  Object.assign([], vote)
       const newLeaf:  TLeafPref = {
         leaf: hash,
         vote: m
       } 
+      console.log("votos: ")
+      console.log(m)
+      console.log(datavote)
+      console.log(hash)
       return newLeaf
     } 
     
@@ -1140,7 +1144,9 @@ export class MerkleTreePrefix extends Base {
       hash = criarHash(buffers[0], buffers[1])
       console.log(`${this.bufferToHex((buffers[0].leaf))} + ${this.bufferToHex((buffers[1].leaf))} = ${this.bufferToHex(hash.leaf)}`)
     }
-
+    console.log("verify: ")
+    console.log(hash.leaf)
+    console.log(root.leaf)
     return Buffer.compare(hash.leaf, root.leaf) === 0
   }
 
