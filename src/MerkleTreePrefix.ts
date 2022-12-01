@@ -3,8 +3,7 @@ import reverse from 'buffer-reverse'
 import SHA256 from 'crypto-js/sha256'
 import treeify from 'treeify'
 import Base from './Base'
-
-const _ = require('lodash');
+const _ = require('lodash')
 
 // TODO: Clean up and DRY up code
 // Disclaimer: The multiproof code is unaudited and may possibly contain serious issues. It's in a hacky state as is and it's begging for a rewrite!
@@ -15,7 +14,7 @@ type THashFn = (value: TValue) => Buffer
 type TLeaf = Buffer
 type TLeafPref = {
   leaf: Buffer;
-  vote: Array<Array<[string, number]>>;
+  vote: Array<[string, number]>;
 };
 type TLayer = any
 //type TFillDefaultHash = (idx?: number, hashFn?: THashFn) => THashFnResult
@@ -119,23 +118,14 @@ export class MerkleTreePrefix extends Base {
     }
 
     this.leaves = leaves.map((leaf:TLeafPref) => ({leaf: this.bufferify(leaf.leaf), vote: leaf.vote}))
-    /*this.leaves = leaves.map(this.bufferify)
-    if (this.sortLeaves) {
-      this.leaves = this.leaves.sort(Buffer.compare)
-    } */
-
     if (this.fillDefaultHash) {
-      for (let i = 0; i < Math.pow(2, Math.ceil(Math.log2(this.leaves.length))); i++) {
+      for (let i = 0; i < Math.pow(2, Math.ceil(Math.log2(this.leaves.length))); i++) 
         if (i >= this.leaves.length) {
           const emptyl = SHA256F("") 
-          const emptyMap = new Array<Array<[string, number]>>([]);
-          
+          const emptyMap = new Array<[string, number]>();
           const emptyLeaf : TLeafPref = {leaf: this.bufferify(emptyl), vote: emptyMap}
-
-      
           this.leaves.push(emptyLeaf)
         }
-      }
     } 
 
     this.layers = [this.leaves]
@@ -143,184 +133,41 @@ export class MerkleTreePrefix extends Base {
   }
 
   private _createHashes (nodes: TLeafPref[]) {
-
-   
-
-    //console.log(this.layers)
     while (nodes.length > 1) {
       const layerIndex = this.layers.length
-
       this.layers.push([])
-      //console.log(this.layers)
-  
-      //console.log(" for (let i = 0; i < nodes.length; i += 2) {")
       for (let i = 0; i < nodes.length; i += 2) {
-        //console.log("i=" + i)
-        //console.log(this.layers)
-        if (i + 1 === nodes.length) {
-          if (nodes.length % 2 === 1) {
-            let data = nodes[nodes.length - 1]
-            let hash = data
-
-            // is bitcoin tree
-            if (this.isBitcoinTree) {
-              /*TODO/ Bitcoin method of duplicating the odd ending nodes
-              data = Buffer.concat([reverse(data), reverse(data)])
-              hash = this.hashFn(data)
-              hash = reverse(this.hashFn(hash))
-
-              this.layers[layerIndex].push(hash)
-              */
-              continue
-            } else {
-              if (this.duplicateOdd) {
-                // continue with creating layer
-              } else {
-                // push copy of hash and continue iteration
-                //console.log("Push-1")
-                //console.log(this.layers)
-                //console.log(nodes[i])
-                const Emptyll = SHA256F("0") 
-                const EmptymyMap = new Array<Array<[string, number]>>([
-                ]);
-                const EmptyLeaf : TLeafPref = {leaf: Emptyll , 
-                  vote: EmptymyMap}
-                this.layers[layerIndex].push(EmptyLeaf)
-                //console.log("Push-2")
-                //console.log(this.layers)
-                continue
-              }
-            }
-          }
-        }
-
         const left = nodes[i]
         const right = i + 1 === nodes.length ? left : nodes[i + 1]
-        let dataleaf = null
-        let combined = null
-        let datavote = []
-        
-
-        if (this.isBitcoinTree) {
-          combined = [reverse(left), reverse(right)]
-        } else {
-          combined = [left, right]
-        }
-
-        if (this.sortPairs) {
-          combined.sort(Buffer.compare)
-        }
-
-        //let vote = Object.assign([], combined[0].vote);
-        let vote = _.cloneDeep(combined[0].vote)
-
-   
-
-       /*vote = combined[0].vote.forEach((x) => {
-                  vote.push(Object.assign({}, x));
-                })
-                */
-
-        for (let ij = 0; ij < combined[0].vote[0].length ; ij += 1){
- 
-          datavote[SHA256F(combined[0].vote[0][ij][0])] = combined[0].vote[0][ij][1]
-        }
-        for (let ijj = 0; ijj < combined[1].vote[0].length ; ijj +=1){
-          if(datavote[SHA256F(combined[1].vote[0][ijj][0])] == undefined){
-            vote[0].push(combined[1].vote[0][ijj])
-          }
-          else{
-            for (let j = 0; j <vote[0].length; j +=1){
-              if(vote[0][j][0] == combined[1].vote[0][ijj][0]){
-                vote[0][j][1] += combined[1].vote[0][ijj][1]
-                break
-              }
-            }
-            
-          }
-          datavote[SHA256F(combined[1].vote[0][ijj][0])] += combined[1].vote[0][ijj][1]
-          
-        }
-
-        /*TODO criar id para ordenar/ ordenar alguma forma ou hashmap etc. Transformar em array  
-        datavote = Object.assign([], combined[0].vote);
-
-        console.log("datavote")
-        console.log(datavote)
-        console.log(combined[0].vote[0])
-        console.log(combined[0].vote[0][1])
-        console.log(combined[1].vote[0][1])
-        console.log(nodes)
-
-        for (let ii = 0; ii < datavote.length ; ii = ii + 1) {
-          console.log("datawwwwwwwwwww")
-          var temNasDuas = false;
-              console.log(datavote[ii][0])
-              console.log(nodes)
-
-          for (let ij = 0; ij < combined[1].vote.length ; ij = +1) {
-            if (datavote[ii][0] === combined[1].vote[ij][0]){
-              console.log("datadgvrfedhbfrd")
-              console.log(combined[0].vote)
-              temNasDuas = true;
-              console.log(datavote)
-              console.log(datavote[ii][1])
-              datavote[ii][1] =  parseInt(datavote[ii][1]) + parseInt(combined[1].vote[ij][1])
-              console.log(datavote[ii][1])
-              console.log(datavote)
-              break
-            }
-          }
-          if (!temNasDuas){
-            console.log("datavote- não tem nas duas")
-            console.log(datavote)
-            const combinedCopy = Object.assign([], combined[0].vote[ii]);
-            datavote = datavote.concat(...combinedCopy)
-            datavote = datavote.push(["a", 1])
-            datavote[-1][0] =  combined[0].vote[ii][0]
-            datavote[-1][1] =  combined[0].vote[ii][1]
-            console.log(datavote)
-          }
-        }
-
-        for (let ji = 0; ji < combined[1].vote.length ; ji =+ 1) {
-          var temNasDuas = false;
-          for (let jj = 0; jj < combined[0].vote.length ; jj =+ 1) {
-            if (datavote[ji][0] === combined[0].vote[jj][0]){
-              temNasDuas = true;
-              break
-            }
-          }
-          if (!temNasDuas){
-            const combinedCopy = Object.assign([], combined[0].vote[ji])
-            datavote = datavote.push(["a", 1])
-            datavote[-1][0] =  combined[0].vote[ji][0]
-            datavote[-1][1] =  combined[0].vote[ji][1]
-            
-          }
-        }
-
-        //datavote = datavote.sort()
-        */
-      
-        dataleaf = Buffer.concat([Buffer.from(Array.from(datavote)),this.bufferify(combined[0].leaf), this.bufferify(combined[1].leaf) ], 3)
-        let hash = this.hashFn(dataleaf)
-
-        // double hash if bitcoin tree
-        if (this.isBitcoinTree) {
-          hash = reverse(this.hashFn(hash))
-        }
-
-        var m =  Object.assign([], vote)
-        const newLeaf:  TLeafPref = {
-          leaf: hash,
-          vote: m
-        } 
+        const newLeaf = this.parentOf(left, right)
 
         this.layers[layerIndex].push(newLeaf)
       }
-
       nodes = this.layers[layerIndex]
+    }
+  }
+
+  private parentOf(leftNode:TLeafPref, rightNode:TLeafPref):TLeafPref {
+/*     console.log("leftNode", leftNode)
+    console.log("rightNode", rightNode) */
+    
+    
+    let parentVote = _.cloneDeep(leftNode.vote).concat(_.cloneDeep(rightNode.vote))
+    parentVote = parentVote.filter((item, i) => {
+      const index = parentVote.findIndex((x) => x[0] === item[0])
+      if(index === i) 
+        return true
+      else 
+        parentVote[index][1] += item[1]
+      return false
+    })
+
+    const parentHash = this.hashFn(Buffer.concat([this.hashFn(parentVote.toString()), leftNode.leaf, rightNode.leaf], 3))
+    const parentLeaf : TLeafPref = {leaf: parentHash, vote: parentVote}
+/*     console.log("parentLeaf", parentLeaf)
+ */    return {
+      leaf: parentHash,
+      vote: parentVote
     }
   }
 
@@ -599,7 +446,7 @@ export class MerkleTreePrefix extends Base {
     if (this.layers.length === 0) 
       return {
         leaf: Buffer.from([]),
-        vote: [[]]
+        vote: []
       }
       
     return this.layers[this.layers.length - 1][0]
@@ -644,7 +491,7 @@ export class MerkleTreePrefix extends Base {
    // TODO
   getProof (leaf: TLeafPref , index?: number):any[] {
     if (typeof leaf === 'undefined') {
-      throw new Error(' leaf is required')
+      throw new Error('leaf is required')
     }
     if (this.hashLeaves){
       leaf.leaf = this.hashFn(leaf.leaf)
@@ -1097,47 +944,9 @@ export class MerkleTreePrefix extends Base {
    *```
    */
   verify (proof: any[], targetNode: TLeafPref, root: TLeafPref):boolean {
-    const criarHash = (leftNode:TLeafPref, rightNode:TLeafPref):TLeafPref => {
-      let dataleaf = null
-      let combined = [leftNode, rightNode]
-      let datavote = []
-
-      let vote = _.cloneDeep(combined[0].vote)
-      for (let ij = 0; ij < combined[0].vote[0].length ; ij += 1){
-        datavote[SHA256F(combined[0].vote[0][ij][0])] = combined[0].vote[0][ij][1]
-      }
-      for (let ijj = 0; ijj < combined[1].vote[0].length ; ijj +=1){
-        if(datavote[SHA256F(combined[1].vote[0][ijj][0])] == undefined){
-          vote[0].push(combined[1].vote[0][ijj])
-        }
-        else{
-          for (let j = 0; j <vote[0].length; j +=1){
-            if(vote[0][j][0] == combined[1].vote[0][ijj][0]){
-              vote[0][j][1] += combined[1].vote[0][ijj][1]
-              break
-            }
-          }
-        }
-        datavote[SHA256F(combined[1].vote[0][ijj][0])] += combined[1].vote[0][ijj][1] 
-      }
-      dataleaf = Buffer.concat([Buffer.from(Array.from(datavote)),this.bufferify(combined[0].leaf), this.bufferify(combined[1].leaf) ], 3)
-      let hash = this.hashFn(dataleaf)
-      var m =  Object.assign([], vote)
-      const newLeaf:  TLeafPref = {
-        leaf: hash,
-        vote: m
-      } 
-      return newLeaf
-    } 
-    
     let hash = targetNode
-    if (
-      !Array.isArray(proof) ||
-      !targetNode ||
-      !root
-    ) {
+    if (!Array.isArray(proof) || !targetNode || !root) 
       return false
-    }
 
     for (let i = 0; i < proof.length; i++) {
       const node = proof[i]
@@ -1149,10 +958,11 @@ export class MerkleTreePrefix extends Base {
       buffers.push(hash)
       buffers[isLeftNode ? 'unshift' : 'push'](data)
       
-      hash = criarHash(buffers[0], buffers[1])
+      hash = this.parentOf(buffers[0], buffers[1])
       console.log(`${this.bufferToHex((buffers[0].leaf))} + ${this.bufferToHex((buffers[1].leaf))} = ${this.bufferToHex(hash.leaf)}`)
     }
 
+    console.log(this.bufferToHex(root.leaf))
     return Buffer.compare(hash.leaf, root.leaf) === 0
   }
 
@@ -1465,31 +1275,202 @@ if (typeof window !== 'undefined') {
 export default MerkleTreePrefix
 
 const tree = new MerkleTreePrefix([], SHA256, {fillDefaultHash: true})
-const ll = SHA256F("aya") 
-const myMap = new Array<Array<[string, number]>>([
-  ["key1", 1],
-  ["key2", 2],
-]);
 
-const myMap1 = new Array<Array<[string, number]>>([
-  ["key1", 1],
-  ["key3", 3]
-]);
+const BUs = [
+{
+  id: "1",
+  _id: "1",
+  secao: "001", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 41, _id: "4"},
+      {partido: "YY", nome: "Candidado B", votos: 109, _id: "3"}]
+},
+{
+  id: "2",
+  _id: "2",
+  secao: "002", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 32, _id: "6"},
+      {partido: "YY", nome: "Candidado B", votos: 19, _id: "5"}]
+},
+{
+  id: "3",
+  _id: "3",
+  secao: "003", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 96, _id: "8"},
+      {partido: "YY", nome: "Candidado B", votos: 15, _id: "7"}]
+},
+{
+  id: "4",
+  _id: "4",
+  secao: "004", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 293, _id: "10"},
+      {partido: "YY", nome: "Candidado B", votos: 93, _id: "9"}]
+},
+{
+  id: "5",
+  _id: "5",
+  secao: "005", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 53, _id: "12"},
+      {partido: "YY", nome: "Candidado B", votos: 72, _id: "11"}]
+},
+{
+  id: "6",
+  _id: "6",
+  secao: "006", 
+  zona: "123", 
+  UF: "SP", 
+  turno: "1",
+  __v: "0",
+  votos:[
+      {partido: "XX", nome: "Candidado A", votos: 21, _id: "14"},
+      {partido: "YY", nome: "Candidado B", votos: 5, _id: "13"}]
+  },
+  {
+    id: "7",
+    _id: "7",
+    secao: "007", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 1, _id: "16"},
+        {partido: "YY", nome: "Candidado B", votos: 5, _id: "15"}]
+  },
+  {
+    id: "8",
+    _id: "8",
+    secao: "008", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 54, _id: "18"},
+        {partido: "YY", nome: "Candidado B", votos: 12, _id: "17"}]
+  },
+  {
+    id: "9",
+    _id: "9",
+    secao: "009", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 41, _id: "20"},
+        {partido: "YY", nome: "Candidado B", votos: 109, _id: "19"}]
+  },
+  {
+    id: "10",
+    _id: "10",
+    secao: "010", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 198, _id: "2"},
+        {partido: "YY", nome: "Candidado B", votos: 36, _id: "1"}]
+  },
+  {
+    id: "11",
+    _id: "11",
+    secao: "011", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 41, _id: "22"},
+        {partido: "YY", nome: "Candidado B", votos: 109, _id: "21"}]
+  },
+  {
+    id: "12",
+    _id: "12",
+    secao: "012", 
+    zona: "123", 
+    UF: "SP", 
+    turno: "1",
+    __v: "0",
+    votos:[
+        {partido: "XX", nome: "Candidado A", votos: 54, _id: "24"},
+        {partido: "YY", nome: "Candidado B", votos: 12, _id: "23"}]
+  },
+]
 
+const leaves = []
+for (let index = 0; index < BUs.length; index++) {
+  const infoBU = BUs[index];
+  leaves.push({
+      leaf: SHA256(JSON.stringify(infoBU)).toString(),
+      vote: infoBU.votos.map(candidato => [candidato.nome, candidato.votos])
+  })
+}
 
-const testLeaf : TLeafPref = {leaf: ll , 
-                        vote: myMap}
-
-const testLeaf1 : TLeafPref = {leaf: ll , 
-                          vote: myMap1}
-
-tree.addLeaf(testLeaf)
-tree.addLeaf(testLeaf1)
-tree.addLeaf(testLeaf)
-tree.addLeaf(testLeaf)
-tree.addLeaf(testLeaf1)
-tree.addLeaf(testLeaf1)
+tree.addLeaves(leaves)
+console.log(tree.getHexLeaves())
 console.log(tree.toString())
-const a = tree.getProof(testLeaf1, 4)
-console.log(a)
-console.log(tree.verify(a, tree.getLeaf(4), tree.getRoot()))
+const leaf = tree.getLeaf(6)
+const BU = BUs[6]
+const BUHash = Buffer.from(SHA256(JSON.stringify(BU)).toString(), 'hex')
+/* --------------------------------------------------------- */
+console.log("Caso de prova bem-sucedida")
+console.log(leaf.leaf)
+console.log(BUHash)
+if(Buffer.compare(leaf.leaf, BUHash) == 0)
+  console.log("Hashes iguais")
+
+let proof = tree.getProof(leaf, 6)
+let root = tree.getRoot()
+console.log(tree.verify(proof, leaf, root))
+/* --------------------------------------------------------- */
+console.log("Caso de prova com votos alterados") 
+console.log(leaf.leaf)
+console.log(BUHash)
+if(Buffer.compare(leaf.leaf, BUHash) == 0)
+  console.log("Hashes iguais")
+proof = tree.getProof(leaf, 6)
+root = tree.getRoot()
+
+/* Alterando prova */
+proof[0].data.vote[0][1] += 50
+
+console.log(tree.verify(proof, leaf, root))
+/* --------------------------------------------------------- */
+console.log("Caso de prova com hash alterado")
+console.log(leaf.leaf)
+console.log(BUHash)
+if(Buffer.compare(leaf.leaf, BUHash) == 0)
+  console.log("Hashes iguais")
+proof = tree.getProof(leaf, 6)
+root = tree.getRoot()
+
+/* Alterando prova */
+proof[0].data.leaf = Buffer.from(SHA256("aya").toString(), 'hex')
+
+console.log(tree.verify(proof, leaf, root))
