@@ -136,7 +136,6 @@ export class MerkleTreePrefix extends Base {
     while (nodes.length > 1) {
       const layerIndex = this.layers.length
       this.layers.push([])
-
       for (let i = 0; i < nodes.length; i += 2) {
         const left = nodes[i]
         const right = i + 1 === nodes.length ? left : nodes[i + 1]
