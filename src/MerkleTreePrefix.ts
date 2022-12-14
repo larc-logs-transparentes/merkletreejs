@@ -1459,8 +1459,6 @@ console.log(proof1)
 const proof2 = tree.getProof(null, 4, 0)
 console.log(tree.getNode(4, 0))
 console.log(proof2)
-/* 
-console.log(tree.verify(proof1, tree.getNode(0, 6), root))
 
-console.log(tree.getNode(4,4))
-console.log(tree.verify(proof2, tree.getNode(4, 8), root)) */ 
+console.log(tree.verify(proof1, tree.getNode(0, 2), root))
+console.log(tree.verify(proof2, tree.getNode(4, 0), root)) 
