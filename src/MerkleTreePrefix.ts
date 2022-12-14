@@ -251,6 +251,24 @@ export class MerkleTreePrefix extends Base {
   }
   
   /**
+   * getNode
+   * @desc Returns the node at the given index.
+   * @param {Number} - Index number
+   * @param {Number} - Depth number
+   * @return {Buffer}
+   */
+   getNode (index: number, depth: number):TLeafPref {
+    if (index < 0 || index > this.leaves.length - 1) {
+      return  {
+        leaf: Buffer.from([]),
+        vote: null
+      }
+    }
+
+    return this.layers[depth][index]
+  }
+
+  /**
    * getLeafIndex
    * @desc Returns the index of the given leaf, or -1 if the leaf is not found.
    * @param {String|Buffer} - Target leaf
@@ -489,16 +507,14 @@ export class MerkleTreePrefix extends Base {
    *```
    */
    // TODO
-  getProof (leaf: TLeafPref , index?: number):any[] {
-    if (typeof leaf === 'undefined') {
-      throw new Error('leaf is required')
+  getProof (leaf?: TLeafPref , index?: number, depth?: number):any[] {
+    if (typeof leaf === 'undefined' || typeof index === 'undefined') {
+      throw new Error('leaf is required or index/depth is required')
     }
-    if (this.hashLeaves){
-      leaf.leaf = this.hashFn(leaf.leaf)
-    }
+
     const proof = []
 
-    if (!Number.isInteger(index)) {
+    if (!Number.isInteger(index) && typeof depth === 'undefined') {
       index = -1
       
       if(!Buffer.isBuffer(leaf.leaf)) leaf.leaf = this.bufferify(leaf.leaf)
@@ -514,8 +530,9 @@ export class MerkleTreePrefix extends Base {
       return []
     }
 
-    for (let i = 0; i < this.layers.length; i++) {
+    for (let i = depth; i < this.layers.length; i++) {
       const layer = this.layers[i]
+      console.log(layer.length)
       const isRightNode = index % 2
       const pairIndex = (isRightNode ? index - 1
         : this.isBitcoinTree && index === layer.length - 1 && i < this.layers.length - 1
@@ -1433,44 +1450,17 @@ for (let index = 0; index < BUs.length; index++) {
 }
 
 tree.addLeaves(leaves)
-console.log(tree.getHexLeaves())
+console.log(tree.getLayers()[0])
 console.log(tree.toString())
-const leaf = tree.getLeaf(6)
-const BU = BUs[6]
-const BUHash = Buffer.from(SHA256(JSON.stringify(BU)).toString(), 'hex')
-/* --------------------------------------------------------- */
-console.log("Caso de prova bem-sucedida")
-console.log(leaf.leaf)
-console.log(BUHash)
-if(Buffer.compare(leaf.leaf, BUHash) == 0)
-  console.log("Hashes iguais")
+const root = tree.getRoot()
+const proof1 = tree.getProof(null, 0, 2)
+console.log(tree.getNode(0, 2))
+console.log(proof1)
+const proof2 = tree.getProof(null, 4, 0)
+console.log(tree.getNode(4, 0))
+console.log(proof2)
+/* 
+console.log(tree.verify(proof1, tree.getNode(0, 6), root))
 
-let proof = tree.getProof(leaf, 6)
-let root = tree.getRoot()
-console.log(tree.verify(proof, leaf, root))
-/* --------------------------------------------------------- */
-console.log("Caso de prova com votos alterados") 
-console.log(leaf.leaf)
-console.log(BUHash)
-if(Buffer.compare(leaf.leaf, BUHash) == 0)
-  console.log("Hashes iguais")
-proof = tree.getProof(leaf, 6)
-root = tree.getRoot()
-
-/* Alterando prova */
-proof[0].data.vote[0][1] += 50
-
-console.log(tree.verify(proof, leaf, root))
-/* --------------------------------------------------------- */
-console.log("Caso de prova com hash alterado")
-console.log(leaf.leaf)
-console.log(BUHash)
-if(Buffer.compare(leaf.leaf, BUHash) == 0)
-  console.log("Hashes iguais")
-proof = tree.getProof(leaf, 6)
-root = tree.getRoot()
-
-/* Alterando prova */
-proof[0].data.leaf = Buffer.from(SHA256("aya").toString(), 'hex')
-
-console.log(tree.verify(proof, leaf, root))
+console.log(tree.getNode(4,4))
+console.log(tree.verify(proof2, tree.getNode(4, 8), root)) */ 
