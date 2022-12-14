@@ -147,11 +147,7 @@ export class MerkleTreePrefix extends Base {
     }
   }
 
-  private parentOf(leftNode:TLeafPref, rightNode:TLeafPref):TLeafPref {
-/*     console.log("leftNode", leftNode)
-    console.log("rightNode", rightNode) */
-    
-    
+  private parentOf(leftNode:TLeafPref, rightNode:TLeafPref):TLeafPref {     
     let parentVote = _.cloneDeep(leftNode.vote).concat(_.cloneDeep(rightNode.vote))
     parentVote = parentVote.filter((item, i) => {
       const index = parentVote.findIndex((x) => x[0] === item[0])
@@ -163,9 +159,7 @@ export class MerkleTreePrefix extends Base {
     })
 
     const parentHash = this.hashFn(Buffer.concat([this.hashFn(parentVote.toString()), leftNode.leaf, rightNode.leaf], 3))
-    const parentLeaf : TLeafPref = {leaf: parentHash, vote: parentVote}
-/*     console.log("parentLeaf", parentLeaf)
- */    return {
+    return {
       leaf: parentHash,
       vote: parentVote
     }
@@ -250,6 +244,24 @@ export class MerkleTreePrefix extends Base {
     return this.leaves[index]
   }
   
+  /**
+   * getNode
+   * @desc Returns the node at the given index.
+   * @param {Number} - Index number
+   * @param {Number} - Depth number
+   * @return {Buffer}
+   */
+   getNode (index: number, depth: number):TLeafPref {
+    if (index < 0 || index > this.leaves.length - 1) {
+      return  {
+        leaf: Buffer.from([]),
+        vote: null
+      }
+    }
+
+    return this.layers[depth][index]
+  }
+
   /**
    * getLeafIndex
    * @desc Returns the index of the given leaf, or -1 if the leaf is not found.
@@ -489,20 +501,14 @@ export class MerkleTreePrefix extends Base {
    *```
    */
    // TODO
-  getProof (leaf: TLeafPref , index?: number):any[] {
-    if (typeof leaf === 'undefined') {
-      throw new Error('leaf is required')
-    }
-    if (this.hashLeaves){
-      leaf.leaf = this.hashFn(leaf.leaf)
-    }
+  getProof (leaf?: TLeafPref , index?: number, depth?: number):any[] {
     const proof = []
 
-    if (!Number.isInteger(index)) {
+    if (!Number.isInteger(index) && typeof depth === 'undefined') {
       index = -1
-      
-      if(!Buffer.isBuffer(leaf.leaf)) leaf.leaf = this.bufferify(leaf.leaf)
+      depth = 0
 
+      if(!Buffer.isBuffer(leaf.leaf)) leaf.leaf = this.bufferify(leaf.leaf)
       for (let i = 0; i < this.leaves.length; i++) {
         if (Buffer.compare(leaf.leaf, this.leaves[i].leaf) === 0) {
           index = i
@@ -514,7 +520,7 @@ export class MerkleTreePrefix extends Base {
       return []
     }
 
-    for (let i = 0; i < this.layers.length; i++) {
+    for (let i = depth; i < this.layers.length; i++) {
       const layer = this.layers[i]
       const isRightNode = index % 2
       const pairIndex = (isRightNode ? index - 1
@@ -1273,204 +1279,3 @@ if (typeof window !== 'undefined') {
 }
 
 export default MerkleTreePrefix
-
-const tree = new MerkleTreePrefix([], SHA256, {fillDefaultHash: true})
-
-const BUs = [
-{
-  id: "1",
-  _id: "1",
-  secao: "001", 
-  zona: "123", 
-  UF: "SP", 
-  turno: "1",
-  __v: "0",
-  votos:[
-      {partido: "XX", nome: "Candidado A", votos: 41, _id: "4"},
-      {partido: "YY", nome: "Candidado B", votos: 109, _id: "3"}]
-},
-{
-  id: "2",
-  _id: "2",
-  secao: "002", 
-  zona: "123", 
-  UF: "SP", 
-  turno: "1",
-  __v: "0",
-  votos:[
-      {partido: "XX", nome: "Candidado A", votos: 32, _id: "6"},
-      {partido: "YY", nome: "Candidado B", votos: 19, _id: "5"}]
-},
-{
-  id: "3",
-  _id: "3",
-  secao: "003", 
-  zona: "123", 
-  UF: "SP", 
-  turno: "1",
-  __v: "0",
-  votos:[
-      {partido: "XX", nome: "Candidado A", votos: 96, _id: "8"},
-      {partido: "YY", nome: "Candidado B", votos: 15, _id: "7"}]
-},
-{
-  id: "4",
-  _id: "4",
-  secao: "004", 
-  zona: "123", 
-  UF: "SP", 
-  turno: "1",
-  __v: "0",
-  votos:[
-      {partido: "XX", nome: "Candidado A", votos: 293, _id: "10"},
-      {partido: "YY", nome: "Candidado B", votos: 93, _id: "9"}]
-},
-{
-  id: "5",
-  _id: "5",
-  secao: "005", 
-  zona: "123", 
-  UF: "SP", 
-  turno: "1",
-  __v: "0",
-  votos:[
-      {partido: "XX", nome: "Candidado A", votos: 53, _id: "12"},
-      {partido: "YY", nome: "Candidado B", votos: 72, _id: "11"}]
-},
-{
-  id: "6",
-  _id: "6",
-  secao: "006", 
-  zona: "123", 
-  UF: "SP", 
-  turno: "1",
-  __v: "0",
-  votos:[
-      {partido: "XX", nome: "Candidado A", votos: 21, _id: "14"},
-      {partido: "YY", nome: "Candidado B", votos: 5, _id: "13"}]
-  },
-  {
-    id: "7",
-    _id: "7",
-    secao: "007", 
-    zona: "123", 
-    UF: "SP", 
-    turno: "1",
-    __v: "0",
-    votos:[
-        {partido: "XX", nome: "Candidado A", votos: 1, _id: "16"},
-        {partido: "YY", nome: "Candidado B", votos: 5, _id: "15"}]
-  },
-  {
-    id: "8",
-    _id: "8",
-    secao: "008", 
-    zona: "123", 
-    UF: "SP", 
-    turno: "1",
-    __v: "0",
-    votos:[
-        {partido: "XX", nome: "Candidado A", votos: 54, _id: "18"},
-        {partido: "YY", nome: "Candidado B", votos: 12, _id: "17"}]
-  },
-  {
-    id: "9",
-    _id: "9",
-    secao: "009", 
-    zona: "123", 
-    UF: "SP", 
-    turno: "1",
-    __v: "0",
-    votos:[
-        {partido: "XX", nome: "Candidado A", votos: 41, _id: "20"},
-        {partido: "YY", nome: "Candidado B", votos: 109, _id: "19"}]
-  },
-  {
-    id: "10",
-    _id: "10",
-    secao: "010", 
-    zona: "123", 
-    UF: "SP", 
-    turno: "1",
-    __v: "0",
-    votos:[
-        {partido: "XX", nome: "Candidado A", votos: 198, _id: "2"},
-        {partido: "YY", nome: "Candidado B", votos: 36, _id: "1"}]
-  },
-  {
-    id: "11",
-    _id: "11",
-    secao: "011", 
-    zona: "123", 
-    UF: "SP", 
-    turno: "1",
-    __v: "0",
-    votos:[
-        {partido: "XX", nome: "Candidado A", votos: 41, _id: "22"},
-        {partido: "YY", nome: "Candidado B", votos: 109, _id: "21"}]
-  },
-  {
-    id: "12",
-    _id: "12",
-    secao: "012", 
-    zona: "123", 
-    UF: "SP", 
-    turno: "1",
-    __v: "0",
-    votos:[
-        {partido: "XX", nome: "Candidado A", votos: 54, _id: "24"},
-        {partido: "YY", nome: "Candidado B", votos: 12, _id: "23"}]
-  },
-]
-
-const leaves = []
-for (let index = 0; index < BUs.length; index++) {
-  const infoBU = BUs[index];
-  leaves.push({
-      leaf: SHA256(JSON.stringify(infoBU)).toString(),
-      vote: infoBU.votos.map(candidato => [candidato.nome, candidato.votos])
-  })
-}
-
-tree.addLeaves(leaves)
-console.log(tree.getHexLeaves())
-console.log(tree.toString())
-const leaf = tree.getLeaf(6)
-const BU = BUs[6]
-const BUHash = Buffer.from(SHA256(JSON.stringify(BU)).toString(), 'hex')
-/* --------------------------------------------------------- */
-console.log("Caso de prova bem-sucedida")
-console.log(leaf.leaf)
-console.log(BUHash)
-if(Buffer.compare(leaf.leaf, BUHash) == 0)
-  console.log("Hashes iguais")
-
-let proof = tree.getProof(leaf, 6)
-let root = tree.getRoot()
-console.log(tree.verify(proof, leaf, root))
-/* --------------------------------------------------------- */
-console.log("Caso de prova com votos alterados") 
-console.log(leaf.leaf)
-console.log(BUHash)
-if(Buffer.compare(leaf.leaf, BUHash) == 0)
-  console.log("Hashes iguais")
-proof = tree.getProof(leaf, 6)
-root = tree.getRoot()
-
-/* Alterando prova */
-proof[0].data.vote[0][1] += 50
-
-console.log(tree.verify(proof, leaf, root))
-/* --------------------------------------------------------- */
-console.log("Caso de prova com hash alterado")
-console.log(leaf.leaf)
-console.log(BUHash)
-if(Buffer.compare(leaf.leaf, BUHash) == 0)
-  console.log("Hashes iguais")
-proof = tree.getProof(leaf, 6)
-root = tree.getRoot()
-
-/* Alterando prova */
-proof[0].data.leaf = Buffer.from(SHA256("aya").toString(), 'hex')
-
-console.log(tree.verify(proof, leaf, root))
