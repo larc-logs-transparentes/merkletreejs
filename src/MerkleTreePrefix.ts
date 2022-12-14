@@ -508,17 +508,13 @@ export class MerkleTreePrefix extends Base {
    */
    // TODO
   getProof (leaf?: TLeafPref , index?: number, depth?: number):any[] {
-    if (typeof leaf === 'undefined' || typeof index === 'undefined') {
-      throw new Error('leaf is required or index/depth is required')
-    }
-
     const proof = []
 
     if (!Number.isInteger(index) && typeof depth === 'undefined') {
       index = -1
-      
-      if(!Buffer.isBuffer(leaf.leaf)) leaf.leaf = this.bufferify(leaf.leaf)
+      depth = 0
 
+      if(!Buffer.isBuffer(leaf.leaf)) leaf.leaf = this.bufferify(leaf.leaf)
       for (let i = 0; i < this.leaves.length; i++) {
         if (Buffer.compare(leaf.leaf, this.leaves[i].leaf) === 0) {
           index = i
