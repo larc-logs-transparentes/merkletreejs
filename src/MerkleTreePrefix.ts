@@ -147,11 +147,7 @@ export class MerkleTreePrefix extends Base {
     }
   }
 
-  private parentOf(leftNode:TLeafPref, rightNode:TLeafPref):TLeafPref {
-/*     console.log("leftNode", leftNode)
-    console.log("rightNode", rightNode) */
-    
-    
+  private parentOf(leftNode:TLeafPref, rightNode:TLeafPref):TLeafPref {     
     let parentVote = _.cloneDeep(leftNode.vote).concat(_.cloneDeep(rightNode.vote))
     parentVote = parentVote.filter((item, i) => {
       const index = parentVote.findIndex((x) => x[0] === item[0])
@@ -163,9 +159,7 @@ export class MerkleTreePrefix extends Base {
     })
 
     const parentHash = this.hashFn(Buffer.concat([this.hashFn(parentVote.toString()), leftNode.leaf, rightNode.leaf], 3))
-    const parentLeaf : TLeafPref = {leaf: parentHash, vote: parentVote}
-/*     console.log("parentLeaf", parentLeaf)
- */    return {
+    return {
       leaf: parentHash,
       vote: parentVote
     }
