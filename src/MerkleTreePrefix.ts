@@ -532,7 +532,6 @@ export class MerkleTreePrefix extends Base {
 
     for (let i = depth; i < this.layers.length; i++) {
       const layer = this.layers[i]
-      console.log(layer.length)
       const isRightNode = index % 2
       const pairIndex = (isRightNode ? index - 1
         : this.isBitcoinTree && index === layer.length - 1 && i < this.layers.length - 1
@@ -1450,7 +1449,6 @@ for (let index = 0; index < BUs.length; index++) {
 }
 
 tree.addLeaves(leaves)
-console.log(tree.getLayers()[0])
 console.log(tree.toString())
 const root = tree.getRoot()
 const proof1 = tree.getProof(null, 0, 2)
